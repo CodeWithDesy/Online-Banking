@@ -4029,7 +4029,11 @@ async function loadUserDashboard() {
     if (userPhoneElement) {
         userPhoneElement.textContent = currentUser.phone;
     }
+    // 🔥 CRITICAL FIX: Load transactions
+    await loadUserTransactions();
     
+    // Re-observe animations
+    setTimeout(observeAnimations, 100);
 }
 
 // ============================================
@@ -4133,20 +4137,51 @@ async function loadUserTransactions() {
         });
 
         if (!response.ok) {
-            console.warn('No transactions found');
-            displayUserTransactions([]);
+            console.warn('No transactions found, showing initial deposit');
+            // Create initial transaction from account creation
+            const initialTransaction = [{
+                _id: 'initial-' + currentUser._id,
+                date: currentUser.createdAt,
+                type: 'Deposit',
+                amount: currentUser.initialDeposit || 0,
+                description: 'Initial Deposit - Account Opening',
+                balance: currentUser.initialDeposit || 0
+            }];
+            displayUserTransactions(initialTransaction);
             return;
         }
 
         const data = await response.json();
         console.log('📦 Transactions:', data);
 
-        const transactions = data.data || [];
+        let transactions = data.data || data.transactions || [];
+        
+        // If no transactions, create initial one
+        if (transactions.length === 0 && currentUser.initialDeposit > 0) {
+            transactions = [{
+                _id: 'initial-' + currentUser._id,
+                date: currentUser.createdAt,
+                type: 'Deposit',
+                amount: currentUser.initialDeposit,
+                description: 'Initial Deposit - Account Opening',
+                balance: currentUser.initialDeposit
+            }];
+        }
+        
         displayUserTransactions(transactions);
 
     } catch (error) {
         console.error('Error fetching transactions:', error);
-        displayUserTransactions([]);
+        // Show initial deposit as fallback
+        const initialTransaction = [{
+            _id: 'initial-' + currentUser._id,
+            date: currentUser.createdAt,
+            type: 'Deposit',
+            amount: currentUser.initialDeposit || 0,
+            description: 'Initial Deposit - Account Opening',
+            balance: currentUser.initialDeposit || 0
+        }];
+        displayUserTransactions(initialTransaction);
     }
 }
 
