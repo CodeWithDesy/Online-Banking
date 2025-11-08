@@ -2,6 +2,16 @@
 
 <html lang="en">
 <head>
+    <!-- Open Graph Meta Tags -->
+<meta property="og:title" content="Linz American Bank" />
+<meta property="og:description" content="Secure online banking — savings, loans, and transaction management made easy." />
+<meta property="og:image" content="https://linzamericanbank.org/images/preview.jpg" />
+<meta property="og:url" content="https://linzamericanbank.org" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<!-- Fallback standard meta -->
+<meta name="description" content="Linz American Bank - Modern Banking with secure accounts and transactions." />
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linz American Bank - Banking Made Simple</title>
@@ -1910,14 +1920,14 @@ html {
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Support</h4>
-                    <ul>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">FAQs</a></li>
-                        <li><a href="#">Security Center</a></li>
-                        <li><a href="#">Branch Locator</a></li>
-                    </ul>
-                </div>
+    <h4>Support</h4>
+    <ul>
+        <li><a href="#" onclick="showPage('contactPage'); return false;">Contact Us</a></li>
+        <li><a href="#">FAQs</a></li>
+        <li><a href="#">Security Center</a></li>
+        <li><a href="#">Branch Locator</a></li>
+    </ul>
+</div>
                 <div class="footer-section">
                     <h4>Contact</h4>
                     <ul>
@@ -2031,6 +2041,63 @@ html {
     </div>
 </div>
 
+<!-- Contact Us Page -->
+<div id="contactPage" class="page">
+    <button class="theme-toggle" onclick="toggleTheme()" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">🌙</button>
+    
+    <div class="login-container">
+        <div class="login-box" style="max-width: 600px;">
+            <div class="login-logo">
+                <div class="login-logo-icon">✉️</div>
+                <h1>Contact Us</h1>
+                <p style="color: var(--text-secondary); margin-top: 10px;">Send us a message and we'll get back to you soon</p>
+            </div>
+
+            <div id="contactError" class="error-message hidden"></div>
+            <div id="contactSuccess" class="hidden" style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); color: var(--success); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;"></div>
+
+            <div class="form-group">
+                <label for="contactName">Full Name *</label>
+                <input type="text" id="contactName" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contactEmail">Email Address *</label>
+                <input type="email" id="contactEmail" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contactPhone">Phone Number</label>
+                <input type="tel" id="contactPhone" placeholder="Enter your phone number (optional)">
+            </div>
+
+            <div class="form-group">
+                <label for="contactSubject">Subject *</label>
+                <input type="text" id="contactSubject" placeholder="What is this regarding?" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contactMessage">Message *</label>
+                <textarea id="contactMessage" rows="6" placeholder="Enter your message here..." required style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem; resize: vertical;"></textarea>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%;" onclick="sendContactMessage()">
+                📧 Send Message
+            </button>
+
+            <div class="back-link">
+                <a href="#" onclick="showPage('landingPage')">← Back to Home</a>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: rgba(99, 102, 241, 0.1); border-radius: 8px; text-align: center;">
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    ✉️ Email: linzamericanbank@gmail.com
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- User Dashboard Page -->
 <div id="userDashboardPage" class="page">
     <header>
@@ -2075,8 +2142,8 @@ html {
                                 <td id="userAccountType">-</td>
                             </tr>
                             <tr>
-                                <td><strong>Account Status</strong></td>
-                                <td><span id="userAccountStatus" class="badge badge-deposit">-</span></td>
+                            <td><strong>Account Status</strong></td>
+                                <td><span id="userAccountStatus">-</span></td>
                             </tr>
                             <tr>
                                 <td><strong>Current Balance</strong></td>
@@ -2089,10 +2156,6 @@ html {
                             <tr>
                                 <td><strong>Phone</strong></td>
                                 <td id="userPhone">-</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Member Since</strong></td>
-                                <td id="userMemberSince">-</td>
                             </tr>
                         </tbody>
                     </table>
@@ -3941,7 +4004,7 @@ async function loadUserDashboard() {
     document.getElementById('userWelcomeName').textContent = currentUser.name;
     document.getElementById('userAccountNumber').textContent = currentUser.accountNumber || currentUser._id;
     document.getElementById('userAccountType').textContent = currentUser.accountType || 'Savings';
-    document.getElementById('userAccountStatus').textContent = currentUser.status || 'Active';
+    document.getElementById('userAccountStatus').textContent = '-';
     document.getElementById('userBalance').textContent = '$' + (currentUser.initialDeposit || 0).toFixed(2);
     
     // Fix email conflict - use querySelector to target the one in the dashboard table
@@ -3955,8 +4018,96 @@ async function loadUserDashboard() {
         userPhoneElement.textContent = currentUser.phone;
     }
     
-    document.getElementById('userMemberSince').textContent = formatDateTime(currentUser.createdAt);
 }
+
+// ============================================
+// CONTACT US FORM HANDLER
+// ============================================
+async function sendContactMessage() {
+    const name = document.getElementById('contactName').value.trim();
+    const email = document.getElementById('contactEmail').value.trim();
+    const phone = document.getElementById('contactPhone').value.trim();
+    const subject = document.getElementById('contactSubject').value.trim();
+    const message = document.getElementById('contactMessage').value.trim();
+
+    const errorMsg = document.getElementById('contactError');
+    const successMsg = document.getElementById('contactSuccess');
+
+    // Clear previous messages
+    errorMsg.classList.add('hidden');
+    successMsg.classList.add('hidden');
+
+    // Validation
+    if (!name || !email || !subject || !message) {
+        errorMsg.textContent = 'Please fill in all required fields (marked with *)';
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        errorMsg.textContent = 'Please enter a valid email address';
+        errorMsg.classList.remove('hidden');
+        return;
+    }
+
+    console.log('📧 Sending contact message...');
+
+    try {
+        // ============================================
+        // 🔥 PLUG YOUR BACKEND CONTACT ROUTE HERE 🔥
+        // ============================================
+        // Replace '/contact' with your actual backend contact route
+        // Example: If your route is POST /api/contact or POST /messages
+        // Update it here: `${BACKEND_URL}/your-contact-route`
+        
+        const response = await fetch(`${BACKEND_URL}/message`, {  // ← CHANGE THIS TO YOUR ROUTE
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                phone: phone,
+                subject: subject,
+                message: message
+            })
+        });
+
+        console.log('📡 Response status:', response.status);
+
+        const data = await response.json();
+        console.log('📦 Response:', data);
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Failed to send message');
+        }
+
+        // Show success message
+        successMsg.textContent = '✅ Message sent successfully! We will get back to you soon.';
+        successMsg.classList.remove('hidden');
+
+        // Clear form
+        document.getElementById('contactName').value = '';
+        document.getElementById('contactEmail').value = '';
+        document.getElementById('contactPhone').value = '';
+        document.getElementById('contactSubject').value = '';
+        document.getElementById('contactMessage').value = '';
+
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+            successMsg.classList.add('hidden');
+        }, 5000);
+
+    } catch (error) {
+        console.error('❌ Error sending message:', error);
+        errorMsg.textContent = error.message || 'Failed to send message. Please try again or call us directly.';
+        errorMsg.classList.remove('hidden');
+    }
+}
+
 // Load User Transactions
 async function loadUserTransactions() {
     try {
