@@ -3678,7 +3678,7 @@ function closeBackdateModal() {
 async function createBackdateTransaction() {
     const customerId = window.currentCustomer._id;
     const type = document.getElementById('backdateType').value;
-    const amount = parseFloat(document.getElementById('backdateAmount').value);
+    let amount = parseFloat(document.getElementById('backdateAmount').value);
     const date = document.getElementById('backdateDate').value;
     const time = document.getElementById('backdateTime').value;
     const description = document.getElementById('backdateDescription').value.trim();
@@ -3709,8 +3709,15 @@ async function createBackdateTransaction() {
         return;
     }
 
+    // Make amount negative for Withdrawal and Transfer
+    if (type === 'Withdrawal' || type === 'Transfer') {
+        amount = -Math.abs(amount);
+    } else {
+        amount = Math.abs(amount); // Ensure positive for Deposit
+    }
+
     // Combine date and time into ISO format
-    const timestamp = new Date(`${date}T${time}`).toISOString();
+    const timestamp = new Date(`${date}T${time}:00`).toISOString();
 
     console.log('📅 Creating backdated transaction:', {
         customerId,
@@ -3721,8 +3728,6 @@ async function createBackdateTransaction() {
     });
 
     try {
-        // TODO: Update this URL based on your backend route
-        // Example: api.post('/transactions/backdate', backdateTransaction)
         const response = await fetch(`${BACKEND_URL}/transactions/backdate`, {
             method: 'POST',
             headers: {
@@ -3739,12 +3744,23 @@ async function createBackdateTransaction() {
 
         console.log('📡 Response status:', response.status);
 
+        // Check if response is OK first
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Server response:', errorText);
+            
+            let errorMessage = 'Failed to create transaction';
+            try {
+                const errorData = JSON.parse(errorText);
+                errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+            throw new Error(errorMessage);
+        }
+
         const data = await response.json();
         console.log('📦 Response data:', data);
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to create transaction');
-        }
 
         // Show success message
         successMsg.textContent = '✅ Backdated transaction created successfully!';
