@@ -3709,12 +3709,8 @@ async function createBackdateTransaction() {
         return;
     }
 
-    // Make amount negative for Withdrawal and Transfer
-    if (type === 'Withdrawal' || type === 'Transfer') {
-        amount = -Math.abs(amount);
-    } else {
-        amount = Math.abs(amount); // Ensure positive for Deposit
-    }
+    // Just ensure amount is always positive - backend will handle the logic
+amount = Math.abs(amount);
 
     // Combine date and time into ISO format
     const timestamp = new Date(`${date}T${time}:00`).toISOString();
