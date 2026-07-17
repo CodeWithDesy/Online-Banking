@@ -2342,28 +2342,32 @@ html {
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label for="withdrawLocation">Branch/ATM Location</label>
-                    <input type="text" id="withdrawLocation" placeholder="e.g., Main Branch, ATM Lagos #456" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;">
+                    <input type="text" id="withdrawLocation" placeholder="e.g., New York Main Branch" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;">
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label for="withdrawReference">Reference/Receipt Number</label>
-                    <input type="text" id="withdrawReference" placeholder="Transaction reference" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;">
+                    <label for="withdrawReference">Transaction PIN</label>
+                    <input
+    type="password"
+    id="withdrawReference"
+    maxlength="4"
+    placeholder="Enter your 4-digit PIN">
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label for="withdrawPayee">Payee/Recipient Name</label>
-                    <input type="text" id="withdrawPayee" placeholder="Who is receiving the money" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;">
+                    <label for="withdrawPayee">Account Number</label>
+                    <input type="text" id="withdrawPayee" placeholder="Account Number" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;">
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label for="withdrawAccount">Recipient Account (if transfer)</label>
-                    <input type="text" id="withdrawAccount" placeholder="Account number if transferring" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;">
+                    <label for="withdrawAccount">Reference/Receipt Number (if given)</label>
+                    <input type="text" id="withdrawAccount" placeholder="Reference/Receipt Number" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;">
                 </div>
             </div>
 
             <!-- Additional Notes -->
             <div class="form-group">
-                <label for="withdrawNotes">Additional Notes/Remarks</label>
+                <label for="withdrawNotes">Description</label>
                 <textarea id="withdrawNotes" rows="2" placeholder="Optional additional details about this withdrawal" style="width: 100%; padding: 14px 18px; border-radius: 10px; border: 2px solid var(--border-color); background: rgba(15, 23, 42, 0.5); color: var(--text-primary); font-size: 1rem;"></textarea>
             </div>
 
@@ -2706,6 +2710,7 @@ html {
                     <option value="Savings">Savings</option>
                     <option value="Current">Current</option>
                     <option value="Fixed Deposit">Fixed Deposit</option>
+                    <option value="Checking">Checking</option>
                 </select>
             </div>
         </div>
@@ -4359,8 +4364,30 @@ function closeWithdrawalModal() {
 }
 
 async function processWithdrawal() {
+
+const method = document.getElementById('withdrawMethod').value;
+
+const date = document.getElementById('withdrawDate').value;
+
+const time = document.getElementById('withdrawTime').value;
+
+const purpose = document.getElementById('withdrawPurpose').value;
+
+const location = document.getElementById('withdrawLocation').value.trim();
+
+const pin = document.getElementById('withdrawReference').value.trim();
+
+const accountNumber = document.getElementById('withdrawPayee').value.trim();
+
+const receiptNumber = document.getElementById('withdrawAccount').value.trim();
+
+const description = document.getElementById('withdrawNotes').value.trim();
+    const amountInput = document.getElementById('withdrawAmount');
+const descriptionInput = document.getElementById('withdrawDescription');
+
+console.log(amountInput);
+console.log(descriptionInput);
     const amount = parseFloat(document.getElementById('withdrawAmount').value);
-    const description = document.getElementById('withdrawDescription').value.trim();
     const errorMsg = document.getElementById('withdrawError');
     const successMsg = document.getElementById('withdrawSuccess');
 
@@ -4410,17 +4437,40 @@ async function processWithdrawal() {
         successMsg.classList.remove('hidden');
 
         setTimeout(async () => {
+            // Close the withdrawal modal
             closeWithdrawalModal();
+
+            // Refresh account information
             const updatedResponse = await fetch(`${BACKEND_URL}/accounts/${currentUser._id}`);
             const updatedData = await updatedResponse.json();
+
             currentUser = updatedData.data;
             sessionStorage.setItem('userData', JSON.stringify(currentUser));
+
             loadUserDashboard();
+
+            // Show withdrawal notice
+            alert(
+`✅ Withdrawal Request Submitted Successfully
+
+The requested withdrawal amount has been deducted from your account, and your withdrawal request has been received successfully.
+
+Should you have any questions, concerns, or require assistance regarding this transaction, please do not hesitate to contact Linz American Bank Support. We are committed to providing you with the highest level of banking service.
+
+You will now be redirected to our Contact page, where you can reach our support team or share your feedback about your banking experience with us.
+
+Thank you for banking with Linz American Bank.`
+            );
+
+            // Redirect to Contact page
+            showPage('contactPage');
+
         }, 1500);
 
     } catch (error) {
-        console.error('Error:', error);
-        errorMsg.textContent = error.message || 'Transaction failed';
+        console.error('Withdrawal error:', error);
+
+        errorMsg.textContent = error.message || 'Withdrawal failed. Please try again.';
         errorMsg.classList.remove('hidden');
     }
 }
